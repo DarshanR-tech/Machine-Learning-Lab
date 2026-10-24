@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Iris Flower Classification using K-Nearest Neighbors (KNN)</title>
+<style>
+  @page {
+    size: A4 portrait;
+    margin: 14mm 18mm 14mm 18mm;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: "Times New Roman", Times, Georgia, serif;
+    font-size: 10.5pt;
+    line-height: 1.38;
+    color: #111111;
+    background: #ffffff;
+  }
+
+  /* Strict Page boundaries */
+  .page {
+    page-break-after: always;
+    page-break-inside: avoid;
+    height: 268mm;
+    max-height: 268mm;
+    overflow: hidden;
+    position: relative;
+    padding-bottom: 2mm;
+  }
+  .page:last-child {
+    page-break-after: avoid;
+  }
+
+  /* Headings */
+  .doc-title {
+    text-align: center;
+    font-size: 13.5pt;
+    font-weight: bold;
+    margin-bottom: 2px;
+    line-height: 1.25;
+  }
+  .doc-subtitle {
+    text-align: center;
+    font-size: 10.5pt;
+    font-style: italic;
+    margin-bottom: 14px;
+  }
+  .section-h1 {
+    font-size: 10.5pt;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 5px;
+  }
+  .section-h1-first {
+    margin-top: 0;
+  }
+
+  /* Text & Paragraphs */
+  p {
+    text-align: justify;
+    margin-bottom: 8px;
+    text-justify: inter-word;
+  }
+
+  /* Lists */
+  ol, ul {
+    margin-left: 20px;
+    margin-bottom: 8px;
+  }
+  li {
+    margin-bottom: 3px;
+    text-align: justify;
+  }
+
+  /* Code Blocks */
+  .code-title {
+    font-size: 9.5pt;
+    font-weight: bold;
+    margin-top: 6px;
+    margin-bottom: 3px;
+  }
+  .code-box {
+    background: #ffffff;
+    border: 1px solid #bfbfbf;
+    padding: 6px 10px;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 8pt;
+    line-height: 1.28;
+    color: #000000;
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  /* Screenshots & Figures */
+  .figure-wrap {
+    text-align: center;
+    margin-top: 4px;
+    margin-bottom: 8px;
+  }
+  .figure-img {
+    max-width: 96%;
+    max-height: 94mm;
+    border: 1px solid #c8c8c8;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .figure-caption {
+    font-size: 9pt;
+    font-style: italic;
+    color: #222222;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  .tree-fig {
+    max-height: 140mm;
+  }
+  .single-fig {
+    max-height: 110mm;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 1                                                         -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <div class="doc-title">
+      Iris Flower Classification using a K-Nearest Neighbors (KNN)<br>Classifier
+    </div>
+    <div class="doc-subtitle">
+      (Iris Flower Species Classification using Scikit-Learn and KNN)
+    </div>
+
+    <div class="section-h1 section-h1-first">Problem Statement:</div>
+    <p>
+      Accurate botanical classification of flowering plants is a fundamental challenge in taxonomy, ecology, and agricultural science. In the case of the <em>Iris</em> genus, species such as <em>Iris setosa</em>, <em>Iris versicolor</em>, and <em>Iris virginica</em> share visually subtle physical resemblances, making manual differentiation subjective, time-consuming, and prone to human error—especially between closely related taxa that exhibit overlapping floral geometry. Manual inspection by taxonomists requires extensive domain expertise and cannot easily scale for high-throughput biodiversity monitoring or automated agricultural sorting.
+    </p>
+    <p>
+      There is, therefore, a need for an automated, fast, and accessible machine learning system that can analyze continuous botanical measurements—specifically Sepal Length, Sepal Width, Petal Length, and Petal Width—and classify the flower into its correct biological species with a measurable confidence score. This project designs and implements an end-to-end, web-based Iris Flower Classification system using the K-Nearest Neighbors (KNN) algorithm and Scikit-Learn. The system encompasses the complete 10-step machine learning lifecycle: data ingestion, automated quality preprocessing, comprehensive exploratory data analysis (EDA), distance metric scaling with <code>StandardScaler</code>, 5-fold cross-validation hyperparameter optimization, test evaluation on unseen data (Accuracy, Precision, Recall, F1-Score, Confusion Matrix), and real-time inference served through an interactive Flask web application.
+    </p>
+
+    <div class="section-h1">Objectives:</div>
+    <ol>
+      <li>To collect and inspect the labelled Iris dataset supplied built-in by Scikit-Learn (150 samples across 3 species).</li>
+      <li>To conduct Exploratory Data Analysis (EDA) and visualize feature distributions, scatter relationships, and correlation heatmaps.</li>
+      <li>To partition the dataset into an 80% training set and a 20% held-out test set using reproducible stratified sampling.</li>
+      <li>To apply feature standardization via <code>StandardScaler</code> fitted strictly on training data to prevent data leakage.</li>
+      <li>To design, train, and optimize a K-Nearest Neighbors (KNN) classifier pipeline using 5-fold cross-validation on the training set.</li>
+      <li>To evaluate the model on an unseen test set and report Accuracy, Precision, Recall, F1-Score, and the Confusion Matrix.</li>
+      <li>To build a Flask-based backend and web front-end that lets a user input flower measurements and view real-time predictions with model-estimated class probabilities.</li>
+    </ol>
+
+    <div class="section-h1">Software / Hardware Required:</div>
+    <ul>
+      <li>Operating System: Windows / Linux / macOS</li>
+      <li>IDE: Visual Studio Code</li>
+      <li>Language: Python 3.x</li>
+      <li>Backend Framework: Flask (REST API)</li>
+    </ul>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 2                                                         -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <ul>
+      <li>Machine Learning: scikit-learn (KNeighborsClassifier, StandardScaler, Pipeline)</li>
+      <li>Data Processing: Pandas, NumPy</li>
+      <li>Data Visualization: Matplotlib, Seaborn</li>
+      <li>Model Serialization: Joblib</li>
+      <li>Frontend: HTML5, CSS3, JavaScript</li>
+      <li>Dataset: Built-in Scikit-learn Iris Dataset (150 samples, 4 features, 3 classes)</li>
+      <li>Version Control: Git</li>
+    </ul>
+
+    <div class="section-h1" style="margin-top: 14px;">Project Directory Structure:</div>
+    <p>
+      The project (“IrisFlowerClassification”) is organized as a Flask backend with separate dataset, trained-model, generated plots, and frontend presentation folders, as shown below.
+    </p>
+
+    <div class="figure-wrap" style="margin-top: 14px;">
+      <img src="{{FIG1_URI}}" class="figure-img tree-fig" alt="Project Directory Structure">
+      <div class="figure-caption">
+        Fig 1: Project directory structure of IrisFlowerClassification in Visual Studio Code
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 3                                                         -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <div class="section-h1 section-h1-first">Procedure:</div>
+    <ol>
+      <li>Load the built-in Iris dataset from <code>sklearn.datasets.load_iris()</code> and export a local copy to <code>data/iris.csv</code>.</li>
+      <li>Preprocess the dataset: inspect missing values, check for duplicate rows, verify numerical <code>float64</code> data types, and separate the four input features from the target species.</li>
+      <li>Perform Exploratory Data Analysis (EDA): generate species countplot, sepal scatter, petal scatter, measurement boxplots, and correlation heatmap inside <code>static/plots/</code>.</li>
+      <li>Select the four continuous morphological features (Sepal Length, Sepal Width, Petal Length, Petal Width) representing key floral characteristics.</li>
+      <li>Split the dataset into 80% training data (120 samples) and 20% testing data (30 samples) using <code>train_test_split(stratify=y, random_state=42)</code>.</li>
+      <li>Fit Scikit-Learn's <code>StandardScaler</code> exclusively on training data to standardize features (z = (x &minus; &mu;) / &sigma;) without information leakage.</li>
+      <li>Evaluate K &isin; {3, 5, 7, 9} using 5-fold cross-validation on the training set, selecting K = 5 as the optimal neighbor configuration.</li>
+      <li>Assemble a unified Scikit-Learn <code>Pipeline</code> containing <code>StandardScaler</code> and <code>KNeighborsClassifier(n_neighbors=5)</code>, fit on training data, and serialize to <code>models/iris_knn_model.pkl</code> using Joblib.</li>
+      <li>Evaluate the trained pipeline on the held-out test set, calculate Accuracy, Precision, Recall, F1-Score, and generate the Confusion Matrix visualization (<code>static/plots/confusion_matrix.png</code>).</li>
+      <li>Launch the Flask application (<code>app.py</code>), render the web interface, validate input flower measurements, and display predicted species with class probabilities.</li>
+    </ol>
+
+    <div class="section-h1">Implementation Code:</div>
+    <p>
+      Representative implementation of the key modules used in the project, based on the pipeline shown in the application (adapt variable/file names to match your exact source files).
+    </p>
+
+    <div class="code-title">1. Dataset Loading & Preprocessing (train_model.py)</div>
+    <div class="code-box">import pandas as pd
+import numpy as np
+from sklearn.datasets import load_iris
+
+def load_and_preprocess_dataset():
+    # Load Scikit-Learn built-in Iris dataset
+    raw_iris = load_iris()
+    feature_names = ['sepal_length', 'sepal_width', 'petal_length', 'petal_width']
+    
+    # Construct Pandas DataFrame
+    df = pd.DataFrame(raw_iris.data, columns=feature_names)
+    df['target'] = raw_iris.target
+    df['species'] = df['target'].map({0: 'setosa', 1: 'versicolor', 2: 'virginica'})
+    
+    # Save copy of dataset
+    df.to_csv('data/iris.csv', index=False)
+    
+    # Preprocessing quality verification
+    missing_vals = df[feature_names].isnull().sum().sum()
+    all_numeric = all(np.issubdtype(df[col].dtype, np.number) for col in feature_names)
+    
+    X = df[feature_names].values
+    y = df['target'].values
+    return df, X, y, raw_iris.target_names</div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 4                                                         -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <div class="code-title">2. Exploratory Data Analysis & Visualizations (train_model.py)</div>
+    <div class="code-box">import matplotlib.pyplot as plt
+import seaborn as sns
+
+def generate_eda_visualizations(df, feature_names):
+    sns.set_theme(style="whitegrid")
+    palette = {'setosa': '#4f46e5', 'versicolor': '#059669', 'virginica': '#db2777'}
+
+    # 1. Species Distribution Countplot
+    plt.figure(figsize=(6, 4))
+    sns.countplot(x='species', data=df, palette=palette, hue='species', legend=False)
+    plt.title('Species Distribution in Iris Dataset')
+    plt.savefig('static/plots/species_distribution.png', dpi=180, bbox_inches='tight')
+    plt.close()
+
+    # 2. Petal Dimensions Scatter
+    plt.figure(figsize=(6, 4.5))
+    sns.scatterplot(data=df, x='petal_length', y='petal_width', hue='species', palette=palette, s=70)
+    plt.title('Petal Length vs Petal Width')
+    plt.savefig('static/plots/petal_scatter.png', dpi=180, bbox_inches='tight')
+    plt.close()
+
+    # 3. Correlation Heatmap
+    plt.figure(figsize=(5.5, 4.5))
+    sns.heatmap(df[feature_names].corr(), annot=True, fmt='.2f', cmap='YlGnBu')
+    plt.title('Feature Correlation Heatmap')
+    plt.savefig('static/plots/correlation_heatmap.png', dpi=180, bbox_inches='tight')
+    plt.close()</div>
+
+    <div class="code-title">3. Model Training Pipeline (train_model.py)</div>
+    <div class="code-box">from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.pipeline import Pipeline
+import joblib
+
+# Stratified 80/20 train-test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# 5-fold cross-validation on training set to verify K=5
+cv_scores = cross_val_score(
+    Pipeline([('scaler', StandardScaler()), ('knn', KNeighborsClassifier(n_neighbors=5))]),
+    X_train, y_train, cv=5, scoring='accuracy'
+)
+
+# Assemble and train final Pipeline
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),       # Fitted strictly on X_train
+    ('knn', KNeighborsClassifier(n_neighbors=5, metric='euclidean'))
+])
+pipeline.fit(X_train, y_train)
+
+# Save trained model pipeline
+joblib.dump(pipeline, 'models/iris_knn_model.pkl')</div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 5                                                         -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <div class="code-title">4. Model Evaluation on Test Set (train_model.py)</div>
+    <div class="code-box">from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Evaluate pipeline on held-out test data
+y_pred = pipeline.predict(X_test)
+acc = accuracy_score(y_test, y_pred)
+cm = confusion_matrix(y_test, y_pred)
+print("Test Accuracy:", acc)
+print(classification_report(y_test, y_pred, target_names=['setosa', 'versicolor', 'virginica']))
+
+# Plot and save confusion matrix
+plt.figure(figsize=(5, 4))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=['Setosa', 'Versicolor', 'Virginica'],
+            yticklabels=['Setosa', 'Versicolor', 'Virginica'])
+plt.title('Confusion Matrix (Held-out Test Set)')
+plt.savefig('static/plots/confusion_matrix.png', dpi=180, bbox_inches='tight')
+plt.close()</div>
+
+    <div class="code-title">5. Prediction Route (app.py)</div>
+    <div class="code-box">from flask import Flask, render_template, request, jsonify
+import joblib, numpy as np
+
+app = Flask(__name__)
+pipeline = joblib.load('models/iris_knn_model.pkl')
+TARGET_CLASSES = ['Setosa', 'Versicolor', 'Virginica']
+
+def validate_input(val_str, field_name, min_val, max_val):
+    if not val_str or str(val_str).strip() == "":
+        return None, f"Please enter a value for {field_name}."
+    try:
+        val = float(val_str)
+        if val < min_val or val > max_val:
+            return None, f"{field_name} must be between {min_val} and {max_val} cm."
+        return val, None
+    except ValueError:
+        return None, f"{field_name} must be a valid numerical value."
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    prediction_result = None
+    form_error = None
+    if request.method == 'POST':
+        sl, e1 = validate_input(request.form.get('sepal_length'), "Sepal Length", 1.0, 10.0)
+        sw, e2 = validate_input(request.form.get('sepal_width'), "Sepal Width", 1.0, 6.0)
+        pl, e3 = validate_input(request.form.get('petal_length'), "Petal Length", 0.5, 9.0)
+        pw, e4 = validate_input(request.form.get('petal_width'), "Petal Width", 0.1, 4.0)
+
+        errors = [e for e in [e1, e2, e3, e4] if e]
+        if errors:
+            form_error = " • ".join(errors)
+        else:
+            features = np.array([[sl, sw, pl, pw]])
+            pred_idx = int(pipeline.predict(features)[0])
+            probs = pipeline.predict_proba(features)[0]
+            prediction_result = {
+                'predicted_species': TARGET_CLASSES[pred_idx],
+                'probabilities': {TARGET_CLASSES[i]: round(probs[i]*100, 2) for i in range(3)}
+            }
+    return render_template('index.html', prediction=prediction_result, form_error=form_error)</div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 6                                                         -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <div class="code-title">6. Prediction Form & Result Display (templates/index.html)</div>
+    <div class="code-box">&lt;form method="POST" action="/" class="prediction-form"&gt;
+  &lt;div class="form-grid-2col"&gt;
+    &lt;input type="number" step="0.1" name="sepal_length" placeholder="Sepal Length (cm)" required&gt;
+    &lt;input type="number" step="0.1" name="sepal_width" placeholder="Sepal Width (cm)" required&gt;
+    &lt;input type="number" step="0.1" name="petal_length" placeholder="Petal Length (cm)" required&gt;
+    &lt;input type="number" step="0.1" name="petal_width" placeholder="Petal Width (cm)" required&gt;
+  &lt;/div&gt;
+  &lt;button type="submit" class="btn btn-primary"&gt;🌸 Predict Species&lt;/button&gt;
+&lt;/form&gt;
+
+{% if prediction %}
+&lt;div class="result-card"&gt;
+  &lt;h3&gt;Predicted Species: {{ prediction.predicted_species }}&lt;/h3&gt;
+  &lt;div class="prob-item"&gt;Setosa: {{ prediction.probabilities.Setosa }}%&lt;/div&gt;
+  &lt;div class="prob-item"&gt;Versicolor: {{ prediction.probabilities.Versicolor }}%&lt;/div&gt;
+  &lt;div class="prob-item"&gt;Virginica: {{ prediction.probabilities.Virginica }}%&lt;/div&gt;
+&lt;/div&gt;
+{% endif %}</div>
+
+    <div class="section-h1" style="margin-top: 14px;">Output (Step-by-Step Screenshots):</div>
+
+    <div class="figure-wrap" style="margin-top: 8px;">
+      <img src="{{FIG2_URI}}" class="figure-img single-fig" alt="Dataset Collection">
+      <div class="figure-caption">
+        Fig 2: Step 1 & 2 — Dataset Collection & Overview: preview of first 5 records, sample counts, and feature dimensions
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 7                                                         -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <div class="figure-wrap">
+      <img src="{{FIG3_URI}}" class="figure-img" alt="Data Preprocessing">
+      <div class="figure-caption">
+        Fig 3: Step 3 — Data Preprocessing: missing value verification, duplicate check, and feature type validation
+      </div>
+    </div>
+
+    <div class="figure-wrap" style="margin-top: 12px;">
+      <img src="{{FIG4_URI}}" class="figure-img" alt="EDA Species and Sepal">
+      <div class="figure-caption">
+        Fig 4: Step 4 — Exploratory Data Analysis: class distribution countplot and Sepal Length vs Sepal Width scatter plot
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 8                                                         -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <div class="figure-wrap">
+      <img src="{{FIG5_URI}}" class="figure-img" alt="EDA Petal and Distributions">
+      <div class="figure-caption">
+        Fig 5: Step 4 — Exploratory Data Analysis: Petal Length vs Petal Width scatter and feature distribution boxplots
+      </div>
+    </div>
+
+    <div class="figure-wrap" style="margin-top: 12px;">
+      <img src="{{FIG6_URI}}" class="figure-img" alt="EDA Correlation Heatmap">
+      <div class="figure-caption">
+        Fig 6: Step 4 — Exploratory Data Analysis: Pearson correlation matrix heatmap showing strong feature dependencies
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 9                                                         -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <div class="figure-wrap">
+      <img src="{{FIG7_URI}}" class="figure-img" alt="Model Training and K-Selection">
+      <div class="figure-caption">
+        Fig 7: Step 5, 6, 7 & 8 — Model Training: 80/20 train-test split, StandardScaler, and 5-fold cross-validation table for K selection
+      </div>
+    </div>
+
+    <div class="figure-wrap" style="margin-top: 12px;">
+      <img src="{{FIG8_URI}}" class="figure-img" alt="Model Evaluation">
+      <div class="figure-caption">
+        Fig 8: Step 9 — Model Evaluation: Test Accuracy (93.33%), Macro Precision, Recall, F1-Score, and Confusion Matrix
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 10                                                        -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <div class="figure-wrap">
+      <img src="{{FIG9_URI}}" class="figure-img" alt="Setosa Classification">
+      <div class="figure-caption">
+        Fig 9: Step 10 — Classification Result: Iris Setosa predicted with 100.0% model-estimated probability (SL: 5.1, SW: 3.5, PL: 1.4, PW: 0.2)
+      </div>
+    </div>
+
+    <div class="figure-wrap" style="margin-top: 12px;">
+      <img src="{{FIG10_URI}}" class="figure-img" alt="Versicolor Classification">
+      <div class="figure-caption">
+        Fig 10: Step 10 — Classification Result: Iris Versicolor predicted with 100.0% model-estimated probability (SL: 5.9, SW: 2.8, PL: 4.3, PW: 1.3)
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- PAGE 11                                                        -->
+  <!-- ============================================================== -->
+  <div class="page">
+    <div class="figure-wrap">
+      <img src="{{FIG11_URI}}" class="figure-img" alt="Virginica Classification">
+      <div class="figure-caption">
+        Fig 11: Step 10 — Classification Result: Iris Virginica predicted with 100.0% model-estimated probability (SL: 6.5, SW: 3.0, PL: 5.5, PW: 2.0)
+      </div>
+    </div>
+
+    <div class="figure-wrap" style="margin-top: 10px;">
+      <img src="{{FIG12_URI}}" class="figure-img" alt="Validation Error">
+      <div class="figure-caption">
+        Fig 12: Step 10 — Input Validation & Error Handling: helpful alert displayed when measurements are missing or out of valid botanical range
+      </div>
+    </div>
+
+    <div class="section-h1" style="margin-top: 12px;">Result:</div>
+    <p>
+      An end-to-end, web-based Iris Flower Classification system was successfully designed and implemented using a Flask backend, a K-Nearest Neighbors (KNN) classifier pipeline (Scikit-Learn), and a clean light-themed responsive web interface. The built-in Scikit-learn Iris dataset (150 samples across 3 species) was preprocessed, analyzed through Exploratory Data Analysis (EDA) visualizations, and partitioned into an 80% training set and a 20% stratified held-out testing set. Features were normalized using <code>StandardScaler</code> fitted strictly on training data to prevent data leakage. Hyperparameter optimization across K ∈ {3, 5, 7, 9} confirmed K=5 as the optimal neighbor configuration. On the unseen test partition, the model achieved an <strong>Accuracy of 93.33%</strong>, <strong>Macro Precision of 94.44%</strong>, <strong>Macro Recall of 93.33%</strong>, and a <strong>Macro F1-Score of 93.27%</strong>. The trained pipeline was serialized using Joblib, and real-time species predictions along with model-estimated class probability distributions are reliably served through the local Flask application.
+    </p>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iris Flower Classification Using K-Nearest Neighbors (KNN)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="light-theme">
+
+  <!-- Main Navigation Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-flower">🌸</span>
+        <div>
+          <h1 class="brand-title">Iris Flower Classification</h1>
+          <p class="brand-subtitle">Machine Learning Mini-Project • K-Nearest Neighbors (KNN) • College Laboratory Demonstration</p>
+        </div>
+      </div>
+      <nav class="quick-nav">
+        <a href="#section-dataset">Dataset</a>
+        <a href="#section-preprocessing">Preprocessing</a>
+        <a href="#section-eda">EDA</a>
+        <a href="#section-training">Training</a>
+        <a href="#section-evaluation">Evaluation</a>
+        <a href="#section-prediction" class="nav-btn-highlight">Predict Flower</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-container">
+
+    <!-- Overview Banner -->
+    <section class="card banner-card">
+      <div class="banner-badge">ML Workflow Demonstration</div>
+      <h2 class="banner-heading">End-to-End Machine Learning Demonstration</h2>
+      <p class="banner-desc">
+        This application demonstrates the complete 10-step machine learning lifecycle for classifying Iris flowers into 
+        <strong>Setosa</strong>, <strong>Versicolor</strong>, and <strong>Virginica</strong> species based on petal and sepal measurements. 
+        Trained using Scikit-Learn's built-in Iris dataset and a K-Nearest Neighbors (KNN) pipeline with feature standardization.
+      </p>
+      
+      <!-- 10-Step Workflow Progress Pills -->
+      <div class="workflow-steps-grid">
+        <div class="wf-pill active"><span class="wf-num">1</span> Problem Definition</div>
+        <div class="wf-pill active"><span class="wf-num">2</span> Data Collection</div>
+        <div class="wf-pill active"><span class="wf-num">3</span> Preprocessing</div>
+        <div class="wf-pill active"><span class="wf-num">4</span> EDA Graphs</div>
+        <div class="wf-pill active"><span class="wf-num">5</span> Feature Selection</div>
+        <div class="wf-pill active"><span class="wf-num">6</span> Train-Test Split</div>
+        <div class="wf-pill active"><span class="wf-num">7</span> Feature Scaling</div>
+        <div class="wf-pill active"><span class="wf-num">8</span> KNN Training</div>
+        <div class="wf-pill active"><span class="wf-num">9</span> Evaluation</div>
+        <div class="wf-pill active"><span class="wf-num">10</span> Live Prediction</div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- FIG. 1: DATASET COLLECTION                                     -->
+    <!-- ============================================================== -->
+    <section id="section-dataset" class="card">
+      <div class="section-tag">Step 1 & 2 • Fig. 1</div>
+      <h3 class="section-title">Dataset Collection & Overview</h3>
+      <p class="section-intro">
+        Loaded directly from <code>sklearn.datasets.load_iris()</code>. Contains 150 biological specimens across 3 distinct species,
+        with 4 continuous numerical physical measurements per sample.
+      </p>
+
+      <div class="stats-overview-grid">
+        <div class="mini-stat-card">
+          <div class="mini-stat-label">Total Samples</div>
+          <div class="mini-stat-val">{{ metadata.dataset.total_samples }}</div>
+          <div class="mini-stat-sub">150 rows in dataset</div>
+        </div>
+        <div class="mini-stat-card">
+          <div class="mini-stat-label">Features</div>
+          <div class="mini-stat-val">{{ metadata.dataset.num_features }}</div>
+          <div class="mini-stat-sub">Sepal & Petal Dimensions</div>
+        </div>
+        <div class="mini-stat-card">
+          <div class="mini-stat-label">Target Classes</div>
+          <div class="mini-stat-val">3 Species</div>
+          <div class="mini-stat-sub">Setosa, Versicolor, Virginica</div>
+        </div>
+        <div class="mini-stat-card">
+          <div class="mini-stat-label">Class Balance</div>
+          <div class="mini-stat-val">50 : 50 : 50</div>
+          <div class="mini-stat-sub">Perfectly balanced classes</div>
+        </div>
+      </div>
+
+      <!-- First 5 Records Table -->
+      <div class="table-block">
+        <div class="table-header-row">
+          <h4 class="table-title">First 5 Dataset Records (Sample Preview)</h4>
+          <a href="{{ url_for('download_csv') }}" class="btn btn-secondary btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download iris.csv
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Sepal Length (cm)</th>
+                <th>Sepal Width (cm)</th>
+                <th>Petal Length (cm)</th>
+                <th>Petal Width (cm)</th>
+                <th>Species Label</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in metadata.dataset.first_five_records %}
+              <tr>
+                <td><strong>{{ loop.index }}</strong></td>
+                <td>{{ "%.1f"|format(row.sepal_length) }}</td>
+                <td>{{ "%.1f"|format(row.sepal_width) }}</td>
+                <td>{{ "%.1f"|format(row.petal_length) }}</td>
+                <td>{{ "%.1f"|format(row.petal_width) }}</td>
+                <td><span class="species-badge species-{{ row.species }}">{{ row.species|capitalize }}</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- FIG. 2: DATA PREPROCESSING                                     -->
+    <!-- ============================================================== -->
+    <section id="section-preprocessing" class="card">
+      <div class="section-tag">Step 3 • Fig. 2</div>
+      <h3 class="section-title">Data Preprocessing & Quality Verification</h3>
+      <p class="section-intro">
+        Before model training, the dataset was inspected for missing values, duplicates, and data consistency to verify readiness for KNN distance computation.
+      </p>
+
+      <div class="preprocessing-cards-grid">
+        <div class="prep-card">
+          <div class="prep-status-icon success-icon">✓</div>
+          <h4 class="prep-card-title">Missing Values Check</h4>
+          <p class="prep-card-desc">Evaluated <code>df.isnull().sum()</code> across all columns.</p>
+          <div class="prep-stat-badge badge-green">0 Missing Values (100% Clean)</div>
+        </div>
+
+        <div class="prep-card">
+          <div class="prep-status-icon info-icon">ℹ</div>
+          <h4 class="prep-card-title">Duplicate Records Check</h4>
+          <p class="prep-card-desc">Evaluated <code>df.duplicated()</code> across 4 feature columns.</p>
+          <div class="prep-stat-badge badge-blue">1 Identical Pair Preserved (Biological Sample)</div>
+        </div>
+
+        <div class="prep-card">
+          <div class="prep-status-icon success-icon">✓</div>
+          <h4 class="prep-card-title">Feature Type Verification</h4>
+          <p class="prep-card-desc">All 4 inputs verified as continuous floating-point numbers.</p>
+          <div class="prep-stat-badge badge-green">100% Continuous Numerical (float64)</div>
+        </div>
+
+        <div class="prep-card">
+          <div class="prep-status-icon success-icon">✓</div>
+          <h4 class="prep-card-title">Feature & Target Separation</h4>
+          <p class="prep-card-desc">Separated matrix $X$ (4 features) from target vector $y$ (species labels).</p>
+          <div class="prep-stat-badge badge-green">X: (150, 4) • y: (150,)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- FIG. 3: EXPLORATORY DATA ANALYSIS (EDA)                         -->
+    <!-- ============================================================== -->
+    <section id="section-eda" class="card">
+      <div class="section-tag">Step 4 • Fig. 3</div>
+      <h3 class="section-title">Exploratory Data Analysis (EDA)</h3>
+      <p class="section-intro">
+        Actual visualizations generated from the dataset using Matplotlib and Seaborn, illustrating class distribution, 
+        feature relationships, separability, and correlation.
+      </p>
+
+      <div class="eda-plots-grid">
+        <!-- Plot 1 -->
+        <div class="plot-card">
+          <div class="plot-img-wrapper">
+            <img src="{{ url_for('static', filename='plots/species_distribution.png') }}" alt="Species Distribution" class="plot-img">
+          </div>
+          <div class="plot-details">
+            <h4 class="plot-title">1. Species Distribution</h4>
+            <p class="plot-caption">Confirms a balanced distribution with exactly 50 samples for each species (Setosa, Versicolor, and Virginica).</p>
+          </div>
+        </div>
+
+        <!-- Plot 2 -->
+        <div class="plot-card">
+          <div class="plot-img-wrapper">
+            <img src="{{ url_for('static', filename='plots/sepal_scatter.png') }}" alt="Sepal Length vs Sepal Width" class="plot-img">
+          </div>
+          <div class="plot-details">
+            <h4 class="plot-title">2. Sepal Dimensions (Length vs Width)</h4>
+            <p class="plot-caption">Sepal measurements exhibit moderate overlap between Versicolor and Virginica, while Setosa tends to have wider sepals.</p>
+          </div>
+        </div>
+
+        <!-- Plot 3 -->
+        <div class="plot-card">
+          <div class="plot-img-wrapper">
+            <img src="{{ url_for('static', filename='plots/petal_scatter.png') }}" alt="Petal Length vs Petal Width" class="plot-img">
+          </div>
+          <div class="plot-details">
+            <h4 class="plot-title">3. Petal Dimensions (Length vs Width)</h4>
+            <p class="plot-caption"><strong>Key insight:</strong> Petal dimensions offer clear linear separability for Setosa and strong clustering distinction for Versicolor and Virginica.</p>
+          </div>
+        </div>
+
+        <!-- Plot 4 -->
+        <div class="plot-card">
+          <div class="plot-img-wrapper">
+            <img src="{{ url_for('static', filename='plots/feature_distributions.png') }}" alt="Feature Distributions Across Species" class="plot-img">
+          </div>
+          <div class="plot-details">
+            <h4 class="plot-title">4. Measurement Distributions (Boxplots)</h4>
+            <p class="plot-caption">Compares medians, quartiles, and spreads for all four morphological characteristics across the three taxa.</p>
+          </div>
+        </div>
+
+        <!-- Plot 5 -->
+        <div class="plot-card plot-card-wide">
+          <div class="plot-img-wrapper">
+            <img src="{{ url_for('static', filename='plots/correlation_heatmap.png') }}" alt="Feature Correlation Heatmap" class="plot-img">
+          </div>
+          <div class="plot-details">
+            <h4 class="plot-title">5. Correlation Heatmap (Pearson r)</h4>
+            <p class="plot-caption">High positive correlation between Petal Length and Petal Width ($r = 0.96$) demonstrates that petal growth is strongly co-dependent.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- FIG. 4: MODEL TRAINING & PIPELINE                              -->
+    <!-- ============================================================== -->
+    <section id="section-training" class="card">
+      <div class="section-tag">Step 5, 6, 7 & 8 • Fig. 4</div>
+      <h3 class="section-title">Model Training, Feature Scaling & K-Selection</h3>
+      <p class="section-intro">
+        A reproducible, stratified train-test split combined with Scikit-learn's <code>StandardScaler</code> and <code>KNeighborsClassifier</code>.
+      </p>
+
+      <div class="training-info-grid">
+        <div class="training-detail-box">
+          <h4 class="box-heading">Train-Test Split (80% / 20%)</h4>
+          <p class="text-sm">Stratified by class to preserve equal 1:1:1 representation in both sets:</p>
+          <ul class="clean-list mt-2">
+            <li><strong>Training Set:</strong> {{ metadata.training.train_samples }} samples (40 Setosa, 40 Versicolor, 40 Virginica)</li>
+            <li><strong>Testing Set:</strong> {{ metadata.training.test_samples }} samples (10 Setosa, 10 Versicolor, 10 Virginica)</li>
+            <li><strong>Split Settings:</strong> <code>test_size=0.2, random_state=42, stratify=y</code></li>
+          </ul>
+        </div>
+
+        <div class="training-detail-box">
+          <h4 class="box-heading">Feature Scaling (StandardScaler)</h4>
+          <p class="text-sm">
+            Because KNN computes Euclidean distances, feature scaling is critical. 
+            The <code>StandardScaler</code> is <strong>fitted only on the training set</strong> to prevent data leakage, and applied consistently via a <code>Pipeline</code>.
+          </p>
+          <div class="math-box mt-2" style="font-family: 'Times New Roman', serif; font-size: 1.05rem; font-style: italic; background: #ffffff; padding: 6px 12px; border: 1px solid #e2e8f0; border-radius: 6px; display: inline-block;">
+            z = (x &minus; &mu;<sub>train</sub>) / &sigma;<sub>train</sub>
+          </div>
+        </div>
+      </div>
+
+      <!-- K-Value Cross Validation Comparison Table -->
+      <div class="table-block mt-4">
+        <h4 class="table-title">K-Value Optimization (5-Fold Cross-Validation on Training Data)</h4>
+        <p class="text-sm text-muted mb-2">Evaluated solely on training folds; test set remained untouched during hyperparameter tuning.</p>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Neighbors (K)</th>
+                <th>Validation Method</th>
+                <th>Mean CV Accuracy</th>
+                <th>Standard Deviation (±)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for k_val, res in metadata.training.cv_comparison.items() %}
+              <tr class="{% if k_val|int == metadata.training.selected_k %}row-highlight{% endif %}">
+                <td><strong>K = {{ k_val }}</strong></td>
+                <td>5-Fold Stratified CV</td>
+                <td><strong>{{ res.mean_accuracy }}%</strong></td>
+                <td>±{{ res.std }}%</td>
+                <td>
+                  {% if k_val|int == metadata.training.selected_k %}
+                  <span class="badge-selected">★ Selected Optimal K</span>
+                  {% else %}
+                  <span class="badge-neutral">Candidate</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="pipeline-card mt-3">
+        <strong>Fitted Pipeline:</strong> <code>Pipeline([('scaler', StandardScaler()), ('knn', KNeighborsClassifier(n_neighbors=5, metric='euclidean'))])</code>
+        <br><span class="text-xs text-muted">Persisted to disk as <code>models/iris_knn_model.pkl</code> via Joblib.</span>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- FIG. 5: MODEL EVALUATION                                       -->
+    <!-- ============================================================== -->
+    <section id="section-evaluation" class="card">
+      <div class="section-tag">Step 9 • Fig. 5</div>
+      <h3 class="section-title">Model Evaluation on Held-Out Test Set</h3>
+      <p class="section-intro">
+        Evaluation metrics computed strictly on the 30 unseen test samples (10 per class) to reflect true generalization performance.
+      </p>
+
+      <div class="metrics-cards-row">
+        <div class="metric-summary-card">
+          <div class="metric-summary-label">Test Accuracy</div>
+          <div class="metric-summary-val highlight-green">{{ metadata.evaluation.accuracy }}%</div>
+          <div class="metric-summary-sub">Correct test predictions</div>
+        </div>
+        <div class="metric-summary-card">
+          <div class="metric-summary-label">Macro Precision</div>
+          <div class="metric-summary-val">{{ metadata.evaluation.precision_macro }}%</div>
+          <div class="metric-summary-sub">Average across 3 species</div>
+        </div>
+        <div class="metric-summary-card">
+          <div class="metric-summary-label">Macro Recall</div>
+          <div class="metric-summary-val">{{ metadata.evaluation.recall_macro }}%</div>
+          <div class="metric-summary-sub">Sensitivity across 3 species</div>
+        </div>
+        <div class="metric-summary-card">
+          <div class="metric-summary-label">Macro F1-Score</div>
+          <div class="metric-summary-val">{{ metadata.evaluation.f1_macro }}%</div>
+          <div class="metric-summary-sub">Harmonic mean balance</div>
+        </div>
+      </div>
+
+      <div class="eval-grid-2col mt-4">
+        <!-- Confusion Matrix Image & Analysis -->
+        <div class="cm-display-card">
+          <h4 class="table-title">Confusion Matrix (Held-out Test Partition)</h4>
+          <div class="cm-img-wrap">
+            <img src="{{ url_for('static', filename='plots/confusion_matrix.png') }}" alt="Confusion Matrix" class="cm-img">
+          </div>
+          <div class="cm-text-explanation">
+            <strong>Matrix Interpretation:</strong>
+            <ul class="text-xs text-muted mt-1">
+              <li><strong>Setosa:</strong> 10 / 10 correctly classified (100% accuracy).</li>
+              <li><strong>Versicolor:</strong> 10 / 10 correctly classified (100% accuracy).</li>
+              <li><strong>Virginica:</strong> 8 / 10 correctly classified, with 2 borderline samples near the Versicolor boundary.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Classification Report Table -->
+        <div class="report-display-card">
+          <h4 class="table-title">Classification Report</h4>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Class</th>
+                  <th>Precision</th>
+                  <th>Recall</th>
+                  <th>F1-Score</th>
+                  <th>Support</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for sp, rep in metadata.evaluation.classification_report.items() %}
+                <tr>
+                  <td><span class="species-badge species-{{ sp }}">{{ sp|capitalize }}</span></td>
+                  <td><strong>{{ rep.precision }}%</strong></td>
+                  <td><strong>{{ rep.recall }}%</strong></td>
+                  <td><strong>{{ rep.f1_score }}%</strong></td>
+                  <td>{{ rep.support }} samples</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="info-alert mt-3">
+            <strong>Laboratory Note:</strong> Macro-averaged metrics give equal weight to each flower class, providing an honest assessment unaffected by sample size variations.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- FIG. 6: PREDICTION FORM & RESULT                               -->
+    <!-- ============================================================== -->
+    <section id="section-prediction" class="card prediction-master-card">
+      <div class="section-tag">Step 10 • Fig. 6</div>
+      <h3 class="section-title">Iris Species Prediction on New Measurements</h3>
+      <p class="section-intro">
+        Input the flower's four botanical measurements below. The input will be standardized and classified 
+        using the fitted K-Nearest Neighbors pipeline.
+      </p>
+
+      <!-- Preset Buttons for quick demo -->
+      <div class="demo-preset-bar">
+        <span class="preset-label">Demo Archetypes:</span>
+        <button type="button" class="preset-pill" onclick="fillPreset(5.1, 3.5, 1.4, 0.2)">
+          🌸 Setosa Sample (5.1, 3.5, 1.4, 0.2)
+        </button>
+        <button type="button" class="preset-pill" onclick="fillPreset(5.9, 2.8, 4.3, 1.3)">
+          🌿 Versicolor Sample (5.9, 2.8, 4.3, 1.3)
+        </button>
+        <button type="button" class="preset-pill" onclick="fillPreset(6.5, 3.0, 5.5, 2.0)">
+          🌺 Virginica Sample (6.5, 3.0, 5.5, 2.0)
+        </button>
+      </div>
+
+      <!-- Error Alert -->
+      {% if form_error %}
+      <div class="alert alert-error" id="formErrorAlert">
+        <strong>⚠️ Input Validation Error:</strong> {{ form_error }}
+      </div>
+      {% endif %}
+
+      <div class="prediction-layout-grid">
+        <!-- Input Form -->
+        <form method="POST" action="/" class="prediction-form" id="irisPredictionForm">
+          <div class="form-grid-2col">
+
+            <!-- Sepal Length -->
+            <div class="form-group">
+              <label for="sepal_length" class="form-label">
+                Sepal Length (cm)
+                <span class="form-range-hint">[1.0 – 10.0 cm • Typical: 4.3 – 7.9]</span>
+              </label>
+              <input 
+                type="number" 
+                id="sepal_length" 
+                name="sepal_length" 
+                step="0.1" 
+                min="1.0" 
+                max="10.0" 
+                class="form-input" 
+                placeholder="e.g. 5.1"
+                value="{{ inputs.sepal_length }}"
+                required
+              >
+            </div>
+
+            <!-- Sepal Width -->
+            <div class="form-group">
+              <label for="sepal_width" class="form-label">
+                Sepal Width (cm)
+                <span class="form-range-hint">[1.0 – 6.0 cm • Typical: 2.0 – 4.4]</span>
+              </label>
+              <input 
+                type="number" 
+                id="sepal_width" 
+                name="sepal_width" 
+                step="0.1" 
+                min="1.0" 
+                max="6.0" 
+                class="form-input" 
+                placeholder="e.g. 3.5"
+                value="{{ inputs.sepal_width }}"
+                required
+              >
+            </div>
+
+            <!-- Petal Length -->
+            <div class="form-group">
+              <label for="petal_length" class="form-label">
+                Petal Length (cm)
+                <span class="form-range-hint">[0.5 – 9.0 cm • Typical: 1.0 – 6.9]</span>
+              </label>
+              <input 
+                type="number" 
+                id="petal_length" 
+                name="petal_length" 
+                step="0.1" 
+                min="0.5" 
+                max="9.0" 
+                class="form-input" 
+                placeholder="e.g. 1.4"
+                value="{{ inputs.petal_length }}"
+                required
+              >
+            </div>
+
+            <!-- Petal Width -->
+            <div class="form-group">
+              <label for="petal_width" class="form-label">
+                Petal Width (cm)
+                <span class="form-range-hint">[0.1 – 4.0 cm • Typical: 0.1 – 2.5]</span>
+              </label>
+              <input 
+                type="number" 
+                id="petal_width" 
+                name="petal_width" 
+                step="0.1" 
+                min="0.1" 
+                max="4.0" 
+                class="form-input" 
+                placeholder="e.g. 0.2"
+                value="{{ inputs.petal_width }}"
+                required
+              >
+            </div>
+          </div>
+
+          <div class="form-actions mt-3">
+            <button type="submit" class="btn btn-primary" id="btnPredict">
+              🌸 Predict Species
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+              Clear Fields
+            </button>
+          </div>
+        </form>
+
+        <!-- Prediction Result Card -->
+        <div class="result-container" id="predictionResultArea">
+          {% if prediction %}
+          <div class="result-card result-species-{{ prediction.predicted_species|lower }}">
+            <div class="result-header">
+              <span class="result-label">Predicted Flower Species</span>
+              <div class="result-species-name">
+                {% if prediction.predicted_species == 'Setosa' %}🌸 Iris Setosa
+                {% elif prediction.predicted_species == 'Versicolor' %}🌿 Iris Versicolor
+                {% else %}🌺 Iris Virginica{% endif %}
+              </div>
+            </div>
+
+            <div class="result-body">
+              <div class="entered-measurements-summary">
+                <strong>Input Vector:</strong> 
+                SL: {{ prediction.inputs.sepal_length }} cm, 
+                SW: {{ prediction.inputs.sepal_width }} cm, 
+                PL: {{ prediction.inputs.petal_length }} cm, 
+                PW: {{ prediction.inputs.petal_width }} cm
+              </div>
+
+              <!-- Class Probabilities -->
+              <h5 class="prob-title mt-3">Model-Estimated Class Probabilities:</h5>
+              <div class="probability-bars-list">
+                
+                <!-- Setosa -->
+                <div class="prob-item">
+                  <div class="prob-meta">
+                    <span><strong>Setosa</strong></span>
+                    <span><strong>{{ prediction.probabilities.Setosa }}%</strong></span>
+                  </div>
+                  <div class="prob-track">
+                    <div class="prob-fill fill-setosa" style="width: {{ prediction.probabilities.Setosa }}%;"></div>
+                  </div>
+                </div>
+
+                <!-- Versicolor -->
+                <div class="prob-item">
+                  <div class="prob-meta">
+                    <span><strong>Versicolor</strong></span>
+                    <span><strong>{{ prediction.probabilities.Versicolor }}%</strong></span>
+                  </div>
+                  <div class="prob-track">
+                    <div class="prob-fill fill-versicolor" style="width: {{ prediction.probabilities.Versicolor }}%;"></div>
+                  </div>
+                </div>
+
+                <!-- Virginica -->
+                <div class="prob-item">
+                  <div class="prob-meta">
+                    <span><strong>Virginica</strong></span>
+                    <span><strong>{{ prediction.probabilities.Virginica }}%</strong></span>
+                  </div>
+                  <div class="prob-track">
+                    <div class="prob-fill fill-virginica" style="width: {{ prediction.probabilities.Virginica }}%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="prob-disclaimer mt-3">
+                <em>* Note: Class probabilities represent model-estimated relative neighbor proportions from the fitted KNN pipeline, not absolute certainty.</em>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <div class="result-placeholder">
+            <div class="placeholder-icon">🌱</div>
+            <h4 class="placeholder-title">Awaiting Input Measurements</h4>
+            <p class="placeholder-desc">
+              Enter sepal and petal dimensions on the left or select a demo archetype to view the predicted species and probability distribution.
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <div><strong>Iris Flower Classification Using K-Nearest Neighbors (KNN)</strong></div>
+      <div class="footer-sub">
+        College ML Laboratory Mini-Project • Technologies: Python, Flask, Scikit-Learn, Pandas, NumPy, Matplotlib, Seaborn, Joblib
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function fillPreset(sl, sw, pl, pw) {
+      document.getElementById('sepal_length').value = sl;
+      document.getElementById('sepal_width').value = sw;
+      document.getElementById('petal_length').value = pl;
+      document.getElementById('petal_width').value = pw;
+
+      // Optional smooth auto-submit for swift lab demo
+      document.getElementById('irisPredictionForm').submit();
+    }
+
+    function resetForm() {
+      document.getElementById('sepal_length').value = '';
+      document.getElementById('sepal_width').value = '';
+      document.getElementById('petal_length').value = '';
+      document.getElementById('petal_width').value = '';
+      const err = document.getElementById('formErrorAlert');
+      if (err) err.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
